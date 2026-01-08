@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WWM Battle Royale - Lobby</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.8);
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .room-code {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .room-code label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9em;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .room-code-display {
+            font-family: 'Courier New', monospace;
+            font-size: 2em;
+            font-weight: bold;
+            color: #ffd700;
+            letter-spacing: 5px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            color: white;
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #ffd700;
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn-join {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            color: #333;
+        }
+
+        .btn-join:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.4);
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #00c853 0%, #64dd17 100%);
+            color: white;
+        }
+
+        .btn-start:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 200, 83, 0.4);
+        }
+
+        .btn-start:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .players-section {
+            margin-top: 30px;
+        }
+
+        .players-header {
+            color: white;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .player-count {
+            background: rgba(255, 215, 0, 0.3);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+
+        .players-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .player-item {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .player-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .player-name {
+            color: white;
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .status-message {
+            color: rgba(255, 255, 255, 0.7);
+            text-align: center;
+            margin-top: 20px;
+            font-style: italic;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💰 Wer wird Millionär?</h1>
+        <p class="subtitle">Battle Royale Edition</p>
+
+        <!-- Name Input Screen -->
+        <div id="name-screen">
+            <div class="input-group">
+                <label for="player-name">Dein Name:</label>
+                <input 
+                    type="text" 
+                    id="player-name" 
+                    placeholder="Gib deinen Namen ein..." 
+                    maxlength="20"
+                    autofocus
+                />
+            </div>
+            <button class="btn-join" onclick="joinGame()">Spiel beitreten</button>
+        </div>
+
+        <!-- Lobby Screen -->
+        <div id="lobby-screen" class="hidden">
+            <!-- Room Code -->
+            <div class="room-code">
+                <label>Raum-Code:</label>
+                <div class="room-code-display" id="room-code">XXXXXX</div>
+            </div>
+
+            <!-- Players List -->
+            <div class="players-section">
+                <div class="players-header">
+                    <span>👥 Spieler</span>
+                    <span class="player-count" id="player-count">0/10</span>
+                </div>
+                <div class="players-list" id="players-list"></div>
+            </div>
+
+            <!-- Start Button -->
+            <button class="btn-start" id="start-btn" onclick="startGame()" disabled>
+                Spiel starten
+            </button>
+
+            <p class="status-message" id="status-message">
+                Warte auf mindestens 2 Spieler...
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const webRoomsWebSocketServerAddr = 'https://nosch.uber.space/web-rooms/';
+        let socket = null;
+        let clientId = null;
+        let roomCode = getRoomCodeFromURL() || generateRoomCode();
+        let players = [];
+        let isStarter = false;
+        let gameStarted = false;
+
+        function getRoomCodeFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('room');
+        }
+
+        function generateRoomCode() {
+            return Math.random().toString(36).substring(2, 8).toUpperCase();
+        }
+
+        function updateURLWithRoomCode(code) {
+            const url = new URL(window.location);
+            url.searchParams.set('room', code);
+            window.history.replaceState({}, '', url);
+        }
+
+        function initWebSocket() {
+            socket = new WebSocket(webRoomsWebSocketServerAddr);
+
+            socket.addEventListener('open', (event) => {
+                console.log('WebSocket connected');
+                sendRequest('*enter-room*', `wwm-${roomCode}`);
+                sendRequest('*subscribe-client-count*');
+                setInterval(() => socket.send(''), 30000);
+            });
+
+            socket.addEventListener('message', (event) => {
+                if (event.data.length > 0) {
+                    try {
+                        const incoming = JSON.parse(event.data);
+                        handleMessage(incoming);
+                    } catch (e) {
+                        console.warn('Failed to parse message:', event.data, e);
+                    }
+                }
+            });
+
+            socket.addEventListener('close', (event) => {
+                console.log('WebSocket disconnected');
+            });
+        }
+
+        function handleMessage(message) {
+            if (!Array.isArray(message)) return;
+            
+            const [selector, ...args] = message;
+
+            if (selector === '*client-id*') {
+                clientId = args[0];
+                console.log('Client ID:', clientId);
+                return;
+            }
+
+            if (selector === '*client-count*') {
+                const count = args[0];
+                console.log('Client count:', count);
+                return;
+            }
+
+            if (typeof selector === 'string' && selector.startsWith('{')) {
+                try {
+                    const data = JSON.parse(selector);
+                    console.log('Received:', data.type);
+                    
+                    if (data.type === 'player-joined' && data.id) {
+                        console.log('Player joined:', data);
+                        addPlayer(data);
+                        
+                        const myPlayer = players.find(p => p.name);
+                        if (myPlayer && myPlayer.id !== data.id) {
+                            setTimeout(() => {
+                                console.log('Sending my info back');
+                                sendRequest('*broadcast-message*', JSON.stringify({
+                                    type: 'player-info',
+                                    id: myPlayer.id,
+                                    name: myPlayer.name
+                                }));
+                            }, 200);
+                        }
+                    } else if (data.type === 'player-info' && data.id) {
+                        console.log('Received player info:', data);
+                        addPlayer(data);
+                    } else if (data.type === 'start-game') {
+                        if (gameStarted) return;
+                        gameStarted = true;
+                        
+                        console.log('🎮 GAME STARTING!');
+                        console.log('🎲 Host ID:', data.hostId, '- Host Name:', data.hostName);
+                        
+                        const myPlayer = players.find(p => p.name);
+                        const amIHost = myPlayer && myPlayer.id === data.hostId;
+                        
+                        console.log('✨ Am I the host?', amIHost);
+                        
+                        setTimeout(() => {
+                            window.location.href = `game.html?room=${roomCode}&player=${encodeURIComponent(myPlayer.name)}&playerId=${myPlayer.id}&isHost=${amIHost}`;
+                        }, 500);
+                    }
+                } catch (e) {
+                    console.warn('Parse error:', e);
+                }
+            }
+        }
+
+        function sendRequest(...message) {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify(message));
+            }
+        }
+
+        function joinGame() {
+            const nameInput = document.getElementById('player-name');
+            const playerName = nameInput.value.trim();
+
+            if (!playerName) {
+                alert('Bitte gib einen Namen ein!');
+                return;
+            }
+
+            if (!getRoomCodeFromURL()) {
+                isStarter = true;
+                updateURLWithRoomCode(roomCode);
+            }
+
+            initWebSocket();
+
+            document.getElementById('name-screen').classList.add('hidden');
+            document.getElementById('lobby-screen').classList.remove('hidden');
+            document.getElementById('room-code').textContent = roomCode;
+
+            const player = {
+                id: Date.now(),
+                name: playerName
+            };
+            
+            players.push(player);
+            updatePlayersDisplay();
+
+            const broadcastData = JSON.stringify({
+                type: 'player-joined',
+                id: player.id,
+                name: player.name
+            });
+            
+            sendRequest('*broadcast-message*', broadcastData);
+            setTimeout(() => sendRequest('*broadcast-message*', broadcastData), 100);
+            setTimeout(() => sendRequest('*broadcast-message*', broadcastData), 300);
+            
+            console.log('Broadcasting player join:', broadcastData);
+        }
+
+        function addPlayer(playerData) {
+            console.log('Adding player:', playerData);
+            
+            if (!players.find(p => p.id === playerData.id || p.name === playerData.name)) {
+                players.push(playerData);
+                console.log('Player added! Total:', players.length);
+                updatePlayersDisplay();
+            }
+        }
+
+        function updatePlayersDisplay() {
+            const playersList = document.getElementById('players-list');
+            const playerCount = document.getElementById('player-count');
+            const startBtn = document.getElementById('start-btn');
+            const statusMsg = document.getElementById('status-message');
+
+            playersList.innerHTML = '';
+            players.forEach((player, index) => {
+                const playerItem = document.createElement('div');
+                playerItem.className = 'player-item';
+                playerItem.innerHTML = `
+                    <div class="player-number">${index + 1}</div>
+                    <div class="player-name">${player.name}</div>
+                `;
+                playersList.appendChild(playerItem);
+            });
+
+            playerCount.textContent = `${players.length}/10`;
+
+            const canStart = players.length >= 2 && players.length <= 10 && !gameStarted;
+            startBtn.disabled = !canStart;
+
+            if (gameStarted) {
+                statusMsg.textContent = 'Spiel startet...';
+            } else if (players.length === 1) {
+                statusMsg.textContent = 'Warte auf mehr Spieler... (Mindestens 2 benötigt)';
+            } else if (players.length > 10) {
+                statusMsg.textContent = 'Maximale Spieleranzahl erreicht!';
+            } else if (players.length >= 2) {
+                statusMsg.textContent = `Jeder kann starten! (${players.length} Spieler) Host wird zufällig gewählt 🎲`;
+            } else {
+                statusMsg.textContent = 'Verbinde...';
+            }
+        }
+
+        function startGame() {
+            if (gameStarted || players.length < 2 || players.length > 10) return;
+            
+            gameStarted = true;
+            console.log('🎮 Starting game with players:', players);
+            
+            const randomIndex = Math.floor(Math.random() * players.length);
+            const randomHost = players[randomIndex];
+            
+            console.log('🎲 Random Host selected:', randomHost.name, '(ID:', randomHost.id, ')');
+            
+            const startMessage = JSON.stringify({ 
+                type: 'start-game',
+                players: players,
+                hostId: randomHost.id,
+                hostName: randomHost.name
+            });
+            
+            sendRequest('*broadcast-message*', startMessage);
+            setTimeout(() => sendRequest('*broadcast-message*', startMessage), 100);
+            setTimeout(() => sendRequest('*broadcast-message*', startMessage), 300);
+            
+            const myPlayer = players.find(p => p.name);
+            const amIHost = myPlayer && myPlayer.id === randomHost.id;
+            
+            console.log('✨ Am I the host?', amIHost);
+            
+            setTimeout(() => {
+                window.location.href = `game.html?room=${roomCode}&player=${encodeURIComponent(myPlayer.name)}&playerId=${myPlayer.id}&isHost=${amIHost}`;
+            }, 500);
+        }
+    </script>
+</body>
+</html>

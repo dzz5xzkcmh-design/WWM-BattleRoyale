@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WWM Battle Royale - Spiel</title>
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .game-container {
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Header */
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            opacity: 0.7;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .timer {
+            font-family: 'Courier New', monospace;
+            color: #ffd700;
+        }
+
+        .timer.warning {
+            color: #ff4444;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* 3D Waiting Room */
+        #waiting-room {
+            width: 100%;
+            height: 400px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .waiting-message {
+            text-align: center;
+            padding: 40px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .waiting-message h2 {
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+
+        /* Question Screen */
+        .question-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .question-box {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 40px;
+            margin-bottom: 30px;
+        }
+
+        .question-text {
+            font-size: 1.8em;
+            text-align: center;
+            margin-bottom: 40px;
+            line-height: 1.4;
+        }
+
+        /* Multiple Choice Answers */
+        .answers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .answer-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            font-size: 1.1em;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: left;
+        }
+
+        .answer-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-3px);
+        }
+
+        .answer-btn.selected {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            color: #333;
+            border-color: #ffd700;
+            transform: scale(1.05);
+        }
+
+        .answer-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .answer-letter {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        /* Sorting Question */
+        .sorting-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .sortable-item {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: move;
+            transition: all 0.3s;
+        }
+
+        .sortable-item:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .sortable-item.dragging {
+            opacity: 0.5;
+        }
+
+        .sort-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #333;
+            flex-shrink: 0;
+        }
+
+        .sort-text {
+            flex: 1;
+            font-size: 1.1em;
+        }
+
+        .sorting-hint {
+            text-align: center;
+            opacity: 0.7;
+            margin-top: 20px;
+            font-style: italic;
+        }
+
+        /* Submit Button */
+        .submit-btn {
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(135deg, #00c853 0%, #64dd17 100%);
+            border: none;
+            border-radius: 10px;
+            font-size: 1.3em;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 200, 83, 0.4);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Messages */
+        .message-box {
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 1.2em;
+        }
+
+        .message-box.error {
+            background: rgba(255, 68, 68, 0.2);
+            border: 2px solid #ff4444;
+        }
+
+        .message-box.success {
+            background: rgba(0, 200, 83, 0.2);
+            border: 2px solid #00c853;
+        }
+
+        .message-box.eliminated {
+            background: rgba(255, 68, 68, 0.3);
+            border: 2px solid #ff4444;
+        }
+
+        /* Winner/Eliminated Screen */
+        .end-screen {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .end-screen h1 {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .end-screen.winner {
+            color: #ffd700;
+        }
+
+        .end-screen.eliminated {
+            color: #ff4444;
+        }
+
+        /* Player List in Waiting Room */
+        .players-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .player-card {
+            background: rgba(0, 150, 255, 0.3);
+            border: 2px solid rgba(0, 150, 255, 0.5);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.5s;
+        }
+
+        .player-card.eliminated {
+            background: rgba(255, 68, 68, 0.2);
+            border-color: #ff4444;
+            opacity: 0.5;
+            transform: translateY(20px);
+        }
+
+        .player-card .player-name {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Game Header -->
+        <div class="game-header">
+            <div class="stat-box">
+                <div class="stat-label">Frage</div>
+                <div class="stat-value" id="question-number">1</div>
+            </div>
+
+            <div class="stat-box">
+                <div class="stat-label">Deine Zeit</div>
+                <div class="stat-value timer" id="timer">0.0s</div>
+            </div>
+
+            <div class="stat-box">
+                <div class="stat-label">Spieler übrig</div>
+                <div class="stat-value" id="players-left">10</div>
+            </div>
+        </div>
+
+        <!-- Waiting Room with A-Frame -->
+        <div id="waiting-screen" class="hidden">
+            <div class="waiting-message">
+                <h2 id="waiting-title">Warte auf nächste Frage...</h2>
+                <p id="eliminated-message"></p>
+            </div>
+
+            <a-scene id="waiting-room" embedded>
+                <a-entity id="player-names" position="0 1.6 -5">
+                    <!-- Player names will be added here dynamically -->
+                </a-entity>
+                <a-sky color="#0a1128"></a-sky>
+            </a-scene>
+
+            <div class="players-grid" id="players-grid"></div>
+        </div>
+
+        <!-- Question Screen -->
+        <div id="question-screen" class="hidden">
+            <div class="question-container">
+                <!-- Error/Success Messages -->
+                <div id="message-container"></div>
+
+                <!-- Question -->
+                <div class="question-box">
+                    <div class="question-text" id="question-text"></div>
+
+                    <!-- Multiple Choice Answers -->
+                    <div id="answers-container" class="answers-grid"></div>
+
+                    <!-- Sorting Items -->
+                    <div id="sorting-container" class="sorting-container hidden"></div>
+                </div>
+
+                <!-- Submit Button -->
+                <button class="submit-btn" id="submit-btn" onclick="submitAnswer()">
+                    Antwort abgeben
+                </button>
+            </div>
+        </div>
+
+        <!-- Eliminated Screen -->
+        <div id="eliminated-screen" class="hidden">
+            <div class="end-screen eliminated">
+                <h1>❌</h1>
+                <h1>Du wurdest eliminiert!</h1>
+                <p style="font-size: 1.5em; margin-top: 20px;">Besser beim nächsten Mal!</p>
+            </div>
+        </div>
+
+        <!-- Winner Screen -->
+        <div id="winner-screen" class="hidden">
+            <div class="end-screen winner">
+                <h1>🏆</h1>
+                <h1>Du hast gewonnen!</h1>
+                <p style="font-size: 1.5em; margin-top: 20px;">Du bist der Millionär! 💰</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/questions.js"></script>
+    <script src="js/game.js"></script>
+</body>
+</html>
