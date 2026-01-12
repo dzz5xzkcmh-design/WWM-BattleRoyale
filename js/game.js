@@ -548,22 +548,22 @@ function submitAnswer() {
         // Disable submit button
         document.getElementById('submit-btn').disabled = true;
         
+        // ALWAYS go to waiting room after answering
+        setTimeout(() => {
+            showWaitingScreen();
+        }, 1500); // Show success message for 1.5s, then go to waiting room
+        
         // Check if all answered (including me!)
         const activePlayers = gameState.players.filter(p => !p.eliminated);
         const answeredCount = Object.keys(gameState.playerAnswers).length;
         console.log('📊 Check: ' + answeredCount + '/' + activePlayers.length + ' players answered');
         
         if (answeredCount === activePlayers.length) {
-            console.log('✅ ALL PLAYERS ANSWERED! (including me)');
-            // Find slowest player
+            console.log('✅ ALL PLAYERS ANSWERED! Starting elimination...');
+            // Wait a bit so everyone is in waiting room, then find slowest
             setTimeout(() => {
                 findAndEliminateSlowest();
-            }, 1000);
-        } else {
-            // Show waiting message
-            setTimeout(() => {
-                showWaitingScreen();
-            }, 2000);
+            }, 3000); // 3 seconds so everyone sees the waiting room
         }
         
     } else {
@@ -624,7 +624,20 @@ function updateTimerDisplay() {
 function showWaitingScreen() {
     document.getElementById('question-screen').classList.add('hidden');
     document.getElementById('waiting-screen').classList.remove('hidden');
-    document.getElementById('status-text').textContent = 'Warte auf andere Spieler...';
+    
+    // Update status based on game state
+    const activePlayers = gameState.players.filter(p => !p.eliminated);
+    const answeredCount = Object.keys(gameState.playerAnswers).length;
+    
+    if (answeredCount === activePlayers.length) {
+        // Everyone answered
+        document.getElementById('waiting-title').textContent = 'Auswertung...';
+        document.getElementById('status-text').textContent = 'Alle haben geantwortet!';
+    } else {
+        // Still waiting
+        document.getElementById('waiting-title').textContent = 'Warte auf Spieler...';
+        document.getElementById('status-text').textContent = `${answeredCount}/${activePlayers.length} Spieler haben geantwortet`;
+    }
     
     updatePlayersGrid();
 }
@@ -766,18 +779,26 @@ function handlePlayerEliminated(data) {
     if (data.playerId === gameState.playerId) {
         gameState.eliminated = true;
         gameState.gameOver = true; // Mark game as over for eliminated player
+        
+        // Show elimination in waiting room first
+        document.getElementById('waiting-title').textContent = '💀 Eliminiert!';
+        document.getElementById('status-text').textContent = `Du warst zu langsam (${data.time?.toFixed(1)}s)`;
+        updatePlayersGrid();
+        
+        // Then show eliminated screen
         setTimeout(() => {
             showEliminatedScreen();
-        }, 2000);
+        }, 4000);
         return;
     }
     
-    // Update grid
+    // Update grid to show eliminated player
     updatePlayersGrid();
     
-    // Show elimination message
+    // Show elimination message in waiting room
+    document.getElementById('waiting-title').textContent = 'Spieler eliminiert!';
     document.getElementById('status-text').textContent = 
-        `${data.playerName} wurde eliminiert!`;
+        `${data.playerName} wurde eliminiert! (${data.time?.toFixed(1)}s)`;
     
     // Check remaining players
     const remaining = gameState.players.filter(p => !p.eliminated);
@@ -788,9 +809,14 @@ function handlePlayerEliminated(data) {
         // Only one left - winner!
         console.log('🏆 We have a winner!');
         gameState.gameOver = true; // Mark game as over
+        
+        // Show winner message
+        document.getElementById('waiting-title').textContent = '🏆 Gewinner!';
+        document.getElementById('status-text').textContent = 'Wir haben einen Sieger!';
+        
         setTimeout(() => {
             showWinner();
-        }, 3000);
+        }, 4000);
     } else if (remaining.length === 0) {
         // Edge case: all eliminated somehow
         console.log('⚠️ No players remaining - ending game');
@@ -798,7 +824,8 @@ function handlePlayerEliminated(data) {
     } else {
         // More than 1 player remaining - continue game
         console.log('▶️ Continuing to next question');
-        // Show countdown before next question
+        
+        // Show countdown after 3 seconds
         setTimeout(() => {
             // Double check game isn't over
             if (gameState.gameOver) {
@@ -813,7 +840,7 @@ function handlePlayerEliminated(data) {
             showCountdown(3, () => {
                 startQuestion(gameState.currentQuestionIndex + 1);
             });
-        }, 3000);
+        }, 3000); // Wait 3 seconds so everyone can see elimination
     }
 }
 
