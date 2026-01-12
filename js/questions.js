@@ -1,8 +1,17 @@
-// WWM Battle Royale - Fragendatenbank
+// Quiz Royale - Fragendatenbank (NUR Multiple Choice!)
 
-// Original questions pool
+// Fisher-Yates Shuffle
+function shuffleArray(array) {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+}
+
+// Original questions pool - NUR MULTIPLE CHOICE!
 const QUESTIONS_POOL = [
-    // Multiple Choice Fragen
     {
         type: 'multiple',
         question: 'Welches ist das größte Säugetier der Welt?',
@@ -30,31 +39,31 @@ const QUESTIONS_POOL = [
     {
         type: 'multiple',
         question: 'Welcher Planet ist der Sonne am nächsten?',
-        answers: ['Venus', 'Mars', 'Merkur', 'Erde'],
-        correct: 2
+        answers: ['Venus', 'Merkur', 'Mars', 'Erde'],
+        correct: 1
     },
     {
         type: 'multiple',
-        question: 'Welches ist das schnellste Landtier?',
-        answers: ['Gepard', 'Löwe', 'Antilope', 'Strauß'],
-        correct: 0
+        question: 'Wie viele Beine hat eine Spinne?',
+        answers: ['6', '8', '10', '12'],
+        correct: 1
     },
     {
         type: 'multiple',
-        question: 'Wie viele Spieler hat ein Fußballteam auf dem Feld?',
-        answers: ['9', '10', '11', '12'],
-        correct: 2
+        question: 'Welches ist das kleinste Land der Welt?',
+        answers: ['Monaco', 'Vatikanstadt', 'San Marino', 'Liechtenstein'],
+        correct: 1
     },
     {
         type: 'multiple',
-        question: 'Welche Farbe hat ein Smaragd?',
-        answers: ['Rot', 'Blau', 'Grün', 'Gelb'],
-        correct: 2
+        question: 'In welchem Land befindet sich die Chinesische Mauer?',
+        answers: ['Japan', 'China', 'Korea', 'Mongolei'],
+        correct: 1
     },
     {
         type: 'multiple',
-        question: 'In welchem Land befindet sich der Eiffelturm?',
-        answers: ['Italien', 'Spanien', 'Frankreich', 'Deutschland'],
+        question: 'Welcher Ozean ist der größte?',
+        answers: ['Atlantik', 'Indischer Ozean', 'Pazifik', 'Arktischer Ozean'],
         correct: 2
     },
     {
@@ -65,26 +74,62 @@ const QUESTIONS_POOL = [
     },
     {
         type: 'multiple',
-        question: 'Welches ist das kleinste Land der Welt?',
-        answers: ['Monaco', 'Vatikanstadt', 'San Marino', 'Liechtenstein'],
+        question: 'Welche Farbe hat ein Smaragd?',
+        answers: ['Rot', 'Blau', 'Grün', 'Gelb'],
+        correct: 2
+    },
+    {
+        type: 'multiple',
+        question: 'Wer malte die Mona Lisa?',
+        answers: ['Pablo Picasso', 'Leonardo da Vinci', 'Vincent van Gogh', 'Michelangelo'],
         correct: 1
     },
     {
         type: 'multiple',
-        question: 'Wie heißt der längste Fluss der Welt?',
-        answers: ['Nil', 'Amazonas', 'Jangtse', 'Mississippi'],
-        correct: 0
-    },
-    {
-        type: 'multiple',
-        question: 'Welches Gas atmen Menschen hauptsächlich ein?',
-        answers: ['Sauerstoff', 'Stickstoff', 'Kohlendioxid', 'Helium'],
+        question: 'Welches ist das schnellste Landtier?',
+        answers: ['Löwe', 'Gepard', 'Antilope', 'Pferd'],
         correct: 1
     },
     {
         type: 'multiple',
         question: 'Wie viele Zähne hat ein erwachsener Mensch normalerweise?',
         answers: ['28', '30', '32', '34'],
+        correct: 2
+    },
+    {
+        type: 'multiple',
+        question: 'Welches ist die Hauptstadt von Frankreich?',
+        answers: ['London', 'Berlin', 'Paris', 'Rom'],
+        correct: 2
+    },
+    {
+        type: 'multiple',
+        question: 'Welches Element hat das chemische Symbol "O"?',
+        answers: ['Gold', 'Sauerstoff', 'Osmium', 'Ozon'],
+        correct: 1
+    },
+    {
+        type: 'multiple',
+        question: 'Wie viele Spieler hat eine Fußballmannschaft auf dem Feld?',
+        answers: ['9', '10', '11', '12'],
+        correct: 2
+    },
+    {
+        type: 'multiple',
+        question: 'Welcher ist der längste Fluss der Welt?',
+        answers: ['Amazonas', 'Nil', 'Jangtse', 'Mississippi'],
+        correct: 1
+    },
+    {
+        type: 'multiple',
+        question: 'In welchem Jahr endete der Zweite Weltkrieg?',
+        answers: ['1943', '1944', '1945', '1946'],
+        correct: 2
+    },
+    {
+        type: 'multiple',
+        question: 'Wie heißt die Hauptstadt von Japan?',
+        answers: ['Peking', 'Seoul', 'Tokio', 'Bangkok'],
         correct: 2
     },
     {
@@ -123,8 +168,6 @@ const QUESTIONS_POOL = [
         answers: ['Los Angeles', 'New York', 'Miami', 'Chicago'],
         correct: 1
     },
-    
-    // 20 neue Multiple Choice Fragen
     {
         type: 'multiple',
         question: 'Wie viele Knochen hat ein erwachsener Mensch?',
@@ -208,57 +251,12 @@ const QUESTIONS_POOL = [
         question: 'Welche Farbe hat das "Black Box" Flugschreiber?',
         answers: ['Schwarz', 'Orange', 'Rot', 'Gelb'],
         correct: 1
-    },
-    {
-        type: 'multiple',
-        question: 'In welchem Kontinent liegt Ägypten?',
-        answers: ['Asien', 'Europa', 'Afrika', 'Australien'],
-        correct: 2
-    },
-    {
-        type: 'multiple',
-        question: 'Wie viele Herzkammern hat ein Mensch?',
-        answers: ['2', '3', '4', '5'],
-        correct: 2
-    },
-    {
-        type: 'multiple',
-        question: 'Welches Gas ist am häufigsten in der Erdatmosphäre?',
-        answers: ['Sauerstoff', 'Stickstoff', 'Kohlendioxid', 'Argon'],
-        correct: 1
-    },
-    {
-        type: 'multiple',
-        question: 'Wie heißt der größte Ozean der Welt?',
-        answers: ['Atlantik', 'Indischer Ozean', 'Pazifik', 'Arktischer Ozean'],
-        correct: 2
-    },
-    {
-        type: 'multiple',
-        question: 'Welches Tier hat den längsten Hals?',
-        answers: ['Elefant', 'Giraffe', 'Kamel', 'Strauß'],
-        correct: 1
-    },
-    {
-        type: 'multiple',
-        question: 'In welchem Jahr endete der Erste Weltkrieg?',
-        answers: ['1916', '1917', '1918', '1919'],
-        correct: 2
     }
 ];
-
-// Fisher-Yates Shuffle Algorithm
-function shuffleArray(array) {
-    const shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled;
-}
 
 // Shuffle questions on load
 const QUESTIONS = shuffleArray(QUESTIONS_POOL);
 
-console.log('📝 Fragen wurden gemischt! Erste Frage:', QUESTIONS[0].question);
+console.log('📝 Fragen wurden gemischt! Erste Frage:', QUESTIONS[0]?.question);
 console.log('📊 Gesamt Fragen:', QUESTIONS.length, '(Alle Multiple Choice)');
+console.log('🎯 Frage-Typen:', QUESTIONS.filter(q => q.type === 'multiple').length, 'Multiple Choice');

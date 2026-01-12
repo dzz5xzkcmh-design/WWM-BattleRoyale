@@ -15,7 +15,7 @@ const gameState = {
     myAnswerTime: null,
     maxPlayers: 2, // Default minimum
     isHost: false,
-    gameStarted: false
+    gameStarted: false // Explicitly false at start
 };
 
 let socket = null;
@@ -276,11 +276,13 @@ function checkIfAllReady() {
     const readyCount = gameState.players.length;
     const requiredCount = gameState.maxPlayers;
     
+    console.log(`👥 checkIfAllReady: ${readyCount}/${requiredCount} players, gameStarted: ${gameState.gameStarted}`);
+    
     // Update status message
     if (readyCount < requiredCount) {
         document.getElementById('status-text').textContent = 
             `Warte auf weitere Spieler... (${readyCount}/${requiredCount})`;
-    } else {
+    } else if (readyCount >= requiredCount && !gameState.gameStarted) {
         document.getElementById('status-text').textContent = 
             `${readyCount} Spieler bereit - Spiel startet gleich...`;
     }
@@ -289,12 +291,13 @@ function checkIfAllReady() {
     const activePlayers = gameState.players.filter(p => !p.eliminated);
     document.getElementById('players-left').textContent = activePlayers.length;
     
-    // Start game only when exact player count is reached
+    // Start game only when exact player count is reached AND game hasn't started yet
     if (readyCount >= requiredCount && !gameState.gameStarted) {
-        gameState.gameStarted = true;
-        
         console.log('✅ REQUIRED PLAYER COUNT REACHED! Starting game...');
         console.log('👥 Player count:', readyCount, '/', requiredCount);
+        
+        // Set flag IMMEDIATELY to prevent double-start
+        gameState.gameStarted = true;
         
         // Broadcast game start
         sendRequest('*broadcast-message*', JSON.stringify({
@@ -310,13 +313,15 @@ function checkIfAllReady() {
 
 // Handle game start
 function handleGameStart() {
-    if (gameState.gameStarted && gameState.currentQuestionIndex > 0) {
-        console.log('⏭️ Game already started, ignoring duplicate start message');
+    console.log('🎮 handleGameStart called, gameStarted:', gameState.gameStarted, 'questionIndex:', gameState.currentQuestionIndex);
+    
+    // Prevent duplicate starts
+    if (gameState.currentQuestionIndex > 0) {
+        console.log('⏭️ Game already in progress (question > 0), ignoring');
         return;
     }
     
-    console.log('🎮 ALL PLAYERS READY - Starting game!');
-    gameState.gameStarted = true;
+    console.log('✅ Starting game - showing countdown!');
     
     // Show countdown before first question
     showCountdown(3, () => {
