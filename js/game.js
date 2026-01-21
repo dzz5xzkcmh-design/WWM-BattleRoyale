@@ -289,7 +289,7 @@ function startQuestion(index) {
 
     console.log('📄 Setting question text:', gameState.currentQuestion.question);
     // Reset UI
-    document.getElementById('question-number').textContent = `Frage ${index + 1}`;
+    document.getElementById('question-number').textContent = ` ${index + 1}`;
     document.getElementById('question-text').textContent = gameState.currentQuestion.question;
     document.getElementById('feedback').style.display = 'none';
     document.getElementById('submit-btn').disabled = false;
